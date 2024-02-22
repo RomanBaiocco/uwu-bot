@@ -10,13 +10,28 @@ if BOT_TOKEN is None:
     print("BOT_TOKEN is not set")
     exit(1)
 
+PREFIX = os.getenv("PREFIX")
+if PREFIX is None:
+    print("PREFIX is not set")
+    exit(1)
+
 
 class MyClient(discord.Client):
     async def on_ready(self):
         print(f"Logged on as {self.user}!")
 
-    async def on_message(self, message):
-        print(f"Message from {message.author}: {message.content}")
+    async def on_guild_join(self, guild: discord.Guild):
+        print(f"Joined {guild.name}!")
+
+    async def on_message(self, message: discord.Message):
+        if message.author.bot:
+            return
+
+        print(f"Received message: {message.content}")
+        message_parts = message.content.split(" ")
+
+        if message_parts[0] == PREFIX:
+            await message.channel.send("uwu")
 
 
 intents = discord.Intents.default()
