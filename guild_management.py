@@ -64,13 +64,11 @@ async def set_level(guild_id: str, level: int):
 
 async def initialize_guild_settings(guild_id: str):
     try:
-        possible_guild_settings = await get_guild_settings(guild_id)
-        if possible_guild_settings is not None:
-            raise ValueError("Settings already initialized for guild")
-
         print(f"Initializing guild settings for guild {guild_id}")
         await db_connect()
         await db.guilds.create({"id": guild_id})
 
+    except Exception as e:
+        raise "Something went wrong while initializing guild settings"
     finally:
         await db_disconnect()
