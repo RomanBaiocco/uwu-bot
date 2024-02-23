@@ -1,8 +1,10 @@
 import os
 import discord
 from dotenv import load_dotenv
+from uwuipy import uwuipy
 
 from db.client import connect as db_connect, disconnect as db_disconnect
+from uwu_levels import levels
 
 from guild_management import (
     get_guild_settings,
@@ -85,8 +87,20 @@ class MyClient(discord.Client):
                 if not guild_settings.target or guild_settings.level == 0:
                     return
 
+                level = levels[guild_settings.level - 1]
+
+                uwu = uwuipy(
+                    None,
+                    level["stutter_chance"],
+                    level["face_chance"],
+                    level["action_chance"],
+                    level["exclamation_chance"],
+                    level["nsfw_actions"],
+                )
+
+                print(f"UwUifying message with level {guild_settings.level}")
                 await message.delete()
-                await message.channel.send(message.content)
+                await message.channel.send(uwu.uwuify(message.content))
         except Exception as e:
             await message.channel.send(f"An error occurred: {e}")
 

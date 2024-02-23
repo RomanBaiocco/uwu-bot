@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "88693051f5548522ffe0c5bcccca43bc925374017d84601faa00f3b0c85208e8"
+            "sha256": "d08e41680eacd6f75360f468c0099454bd3ebc1924460b8e271667a87bd6fcac"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -665,6 +665,15 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==4.9.0"
+        },
+        "uwuipy": {
+            "hashes": [
+                "sha256:94915fbb5f897ab9532d5d39e7e4b726fd8da8c3352efcfb1c1df98a5cf9ec04",
+                "sha256:db26b361e4466c85ae06fe1a663ce77167e16993c9e848511cd49f74107ff1e8"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.10' and python_version < '4.0'",
+            "version": "==0.1.7"
         },
         "wirerope": {
             "hashes": [
