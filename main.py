@@ -1,15 +1,17 @@
 import os
+import json
 import discord
 from dotenv import load_dotenv
 from uwuipy import uwuipy
 
-from db.client import connect as db_connect, disconnect as db_disconnect
+
 from uwu_levels import levels
 
 from guild_management import (
     get_guild_settings,
     set_target,
     set_level,
+    set_webhook,
     initialize_guild_settings,
 )
 
@@ -76,6 +78,27 @@ class MyClient(discord.Client):
 
                     await set_level(guild_id, level)
                     await message.channel.send(f"Level set to {level}")
+
+                elif command == "register":
+                    force_arg = message_parts[2] if len(message_parts) > 2 else None
+                    guild_settings = await get_guild_settings(guild_id)
+
+                    if (str(message.channel.id) not in guild_settings.webhooks) or (
+                        force_arg == "-f"
+                    ):
+                        new_webhook = await message.channel.create_webhook(
+                            name="UwU Bot"
+                        )
+
+                        new_webhook_url = new_webhook.url
+                        await set_webhook(str(guild_id), str(message.channel.id), new_webhook_url)
+
+                        await message.channel.send("Channel registered")
+
+
+                    else:
+                        await message.channel.send("This channel is already registered")
+
                 elif command == "dingdongbingbong":
                     await message.channel.send("Initializing guild settings...")
                     await initialize_guild_settings(guild_id)
@@ -90,7 +113,7 @@ class MyClient(discord.Client):
                 level = levels[guild_settings.level - 1]
 
                 uwu = uwuipy(
-                    None,
+                    None,   
                     level["stutter_chance"],
                     level["face_chance"],
                     level["action_chance"],
@@ -110,6 +133,7 @@ class MyClient(discord.Client):
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.webhooks = True
 
 client = MyClient(intents=intents)
 client.run(BOT_TOKEN)

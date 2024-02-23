@@ -1,3 +1,4 @@
+import json
 import ring
 
 from db.client import connect as db_connect, disconnect as db_disconnect, db
@@ -54,6 +55,32 @@ async def set_level(guild_id: str, level: int):
         updated_guild = await db.guilds.update(
             where={"id": guild_id},
             data={"level": level},
+        )
+
+        cache[f"guild_management.get_guild_settings_cached:{guild_id}"] = updated_guild
+
+    finally:
+        await db_disconnect()
+
+
+async def set_webhook(guild_id: str, channel_id: str, webhook_url: str):
+    try:
+        print(f"Setting webhook for guild {guild_id} in channel {channel_id}")
+        await db_connect()
+
+        guild_settings = await get_guild_settings(guild_id)
+        webhooks = guild_settings.webhooks
+
+        print(f"Webhooks: {webhooks}")
+
+
+        webhooks[channel_id] = webhook_url
+        
+        print(f"Webhooks: {webhooks}")
+
+        updated_guild = await db.guilds.update(
+            where={"id": guild_id},
+            data={"webhooks": json.dumps(webhooks)},
         )
 
         cache[f"guild_management.get_guild_settings_cached:{guild_id}"] = updated_guild
