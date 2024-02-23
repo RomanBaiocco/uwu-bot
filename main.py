@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 import discord
 from dotenv import load_dotenv
 from uwuipy import uwuipy
@@ -129,11 +130,18 @@ class MyClient(discord.Client):
                 if str(message.channel.id) in guild_settings.webhooks:
                     webhook_url = guild_settings.webhooks[str(message.channel.id)]
 
+                    avatar_url = 'https://cdn.discordapp.com/avatars/803083553411170305/62902b44f60c9277a01f9f102d15b040.webp?size=240'
+
+                    if message.author.guild_avatar:
+                        avatar_url = message.author.guild_avatar.url
+                    elif message.author.avatar:
+                        avatar_url = message.author.avatar.url
+
                     requests.post(
                         webhook_url,
                         json={
                             "username": message.author.display_name,
-                            "avatar_url": message.author.avatar.url,
+                            "avatar_url": avatar_url,
                             "content": uwu.uwuify(message.content),
                         },
                     )
