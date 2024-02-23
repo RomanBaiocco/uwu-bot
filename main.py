@@ -101,6 +101,9 @@ class MyClient(discord.Client):
                 print(f"UwUifying message with level {guild_settings.level}")
                 await message.delete()
                 await message.channel.send(uwu.uwuify(message.content))
+        except ValueError as e:
+            print(e)
+            return
         except Exception as e:
             await message.channel.send(f"An error occurred: {e}")
 
