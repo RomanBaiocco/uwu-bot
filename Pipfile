@@ -10,6 +10,7 @@ black = "*"
 ring = "*"
 prisma = "*"
 uwuipy = "*"
+requests = "*"
 
 [dev-packages]
 

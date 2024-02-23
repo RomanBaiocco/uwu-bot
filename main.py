@@ -1,5 +1,5 @@
 import os
-import json
+import requests
 import discord
 from dotenv import load_dotenv
 from uwuipy import uwuipy
@@ -91,10 +91,11 @@ class MyClient(discord.Client):
                         )
 
                         new_webhook_url = new_webhook.url
-                        await set_webhook(str(guild_id), str(message.channel.id), new_webhook_url)
+                        await set_webhook(
+                            str(guild_id), str(message.channel.id), new_webhook_url
+                        )
 
                         await message.channel.send("Channel registered")
-
 
                     else:
                         await message.channel.send("This channel is already registered")
@@ -105,6 +106,8 @@ class MyClient(discord.Client):
                     await message.channel.send("Guild settings initialized!")
                 else:
                     await message.channel.send("Unknown command")
+            elif message_parts[0].startswith('-'):
+                return
             else:
                 guild_settings = await get_guild_settings(str(message.guild.id))
                 if not guild_settings.target or guild_settings.level == 0:
@@ -113,7 +116,7 @@ class MyClient(discord.Client):
                 level = levels[guild_settings.level - 1]
 
                 uwu = uwuipy(
-                    None,   
+                    None,
                     level["stutter_chance"],
                     level["face_chance"],
                     level["action_chance"],
@@ -122,8 +125,22 @@ class MyClient(discord.Client):
                 )
 
                 print(f"UwUifying message with level {guild_settings.level}")
+
+                if str(message.channel.id) in guild_settings.webhooks:
+                    webhook_url = guild_settings.webhooks[str(message.channel.id)]
+
+                    requests.post(
+                        webhook_url,
+                        json={
+                            "username": message.author.display_name,
+                            "avatar_url": message.author.avatar.url,
+                            "content": uwu.uwuify(message.content),
+                        },
+                    )
+                else:
+                    await message.channel.send(uwu.uwuify(message.content))
+
                 await message.delete()
-                await message.channel.send(uwu.uwuify(message.content))
         except ValueError as e:
             print(e)
             return
