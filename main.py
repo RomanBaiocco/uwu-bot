@@ -1,10 +1,11 @@
 import os
 import requests
-import json
 import discord
 from dotenv import load_dotenv
 from uwuipy import uwuipy
 
+from logger import log_message
+import traceback
 
 from uwu_levels import levels
 
@@ -14,6 +15,8 @@ from guild_management import (
     set_level,
     set_webhook,
     initialize_guild_settings,
+    mark_channel_off_limits,
+    mark_channel_on_limits,
 )
 
 load_dotenv()
@@ -32,11 +35,11 @@ if PREFIX is None:
 
 class MyClient(discord.Client):
     async def on_ready(self):
-        print(f"Logged on as {self.user}!")
+        log_message("info", f"Logged on as {self.user}!")
 
     async def on_guild_join(self, guild: discord.Guild):
         initialize_guild_settings()
-        print(f"Joined {guild.name}!")
+        log_message("info", f"Joined {guild.name}", {"guild_id": str(guild.id)})
 
     async def on_message(self, message: discord.Message):
         try:
@@ -84,7 +87,7 @@ class MyClient(discord.Client):
                     force_arg = message_parts[2] if len(message_parts) > 2 else None
                     guild_settings = await get_guild_settings(guild_id)
 
-                    if (str(message.channel.id) not in guild_settings.webhooks) or (
+                    if (str(message.channel.id) not in guild_settings["webhooks"]) or (
                         force_arg == "-f"
                     ):
                         new_webhook = await message.channel.create_webhook(
@@ -105,16 +108,31 @@ class MyClient(discord.Client):
                     await message.channel.send("Initializing guild settings...")
                     await initialize_guild_settings(guild_id)
                     await message.channel.send("Guild settings initialized!")
+                elif command == "offlimits":
+                    await mark_channel_off_limits(guild_id, message.channel.id)
+                    await message.channel.send(
+                        "This channel is now off limits for UwU bot"
+                    )
+                elif command == "onlimits":
+                    await mark_channel_on_limits(guild_id, message.channel.id)
+                    await message.channel.send(
+                        "This channel is now on limits for UwU bot"
+                    )
                 else:
                     await message.channel.send("Unknown command")
-            elif message_parts[0].startswith('-'):
+            elif message_parts[0].startswith("-"):
                 return
             else:
                 guild_settings = await get_guild_settings(str(message.guild.id))
-                if not guild_settings.target or guild_settings.level == 0:
+                if (
+                    not guild_settings["target"]
+                    or guild_settings["target"] != str(message.author.id)
+                    or guild_settings["level"] == 0
+                    or message.channel.id in guild_settings["off_limits_channels"]
+                ):
                     return
 
-                level = levels[guild_settings.level - 1]
+                level = levels[guild_settings["level"] - 1]
 
                 uwu = uwuipy(
                     None,
@@ -125,12 +143,12 @@ class MyClient(discord.Client):
                     level["nsfw_actions"],
                 )
 
-                print(f"UwUifying message with level {guild_settings.level}")
+                if str(message.channel.id) in guild_settings["webhooks"]:
+                    webhooks = guild_settings["webhooks"]
+                    channel_id = str(message.channel.id)
+                    webhook_url = webhooks[channel_id]
 
-                if str(message.channel.id) in guild_settings.webhooks:
-                    webhook_url = guild_settings.webhooks[str(message.channel.id)]
-
-                    avatar_url = 'https://cdn.discordapp.com/avatars/803083553411170305/62902b44f60c9277a01f9f102d15b040.webp?size=240'
+                    avatar_url = "https://cdn.discordapp.com/avatars/803083553411170305/62902b44f60c9277a01f9f102d15b040.webp?size=240"
 
                     if message.author.guild_avatar:
                         avatar_url = message.author.guild_avatar.url
@@ -150,9 +168,22 @@ class MyClient(discord.Client):
 
                 await message.delete()
         except ValueError as e:
-            print(e)
+            log_message(
+                "error",
+                "ValueError encountered",
+                exception=str(e),
+            )
+            traceback.print_exc()
+
             return
         except Exception as e:
+            error_info = {
+                "guild_id": str(message.guild.id),
+                "exception": str(e),
+            }
+            log_message("error", "Unexpected error occurred", **error_info)
+            traceback.print_exc()
+
             await message.channel.send(f"An error occurred: {e}")
 
 

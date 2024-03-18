@@ -1,6 +1,8 @@
 # UwU Bot
 
-Your worst nightmare.
+This is a bot that reads messages sent on a Discord server, and "uwu-ifys" them, and reposts it to the server.
+
+I'm sorry for making this.
 
 ## Dev Environment Set Up
 
@@ -22,4 +24,4 @@ Your worst nightmare.
 
 ### Run the program
 
-`python3 bot.py`
+`python3 main.py`

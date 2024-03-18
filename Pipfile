@@ -6,11 +6,11 @@ name = "pypi"
 [packages]
 "discord.py" = "*"
 python-dotenv = "*"
-black = "*"
 ring = "*"
-prisma = "*"
 uwuipy = "*"
 requests = "*"
+sqlmodel = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
